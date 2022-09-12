@@ -1,0 +1,303 @@
+<!--
+    5IV10-Cabrera Aguirre Antonio Zabdiel
+    Subneteo
+-->
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Subneteo</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="stilos.CSS">
+    </head>
+    <body>
+        <div>
+            <h2>5IV10-Cabrera Aguirre Antonio Zabdiel</h2>
+            <h2>Subneteo</h2>
+        </div>
+        <label for="ip">IP</label>
+        <input type="text" id="ip" name="ip" class="inpu">
+        <label for="ip" id="ipBin"></label>
+        <br>
+        <label for="subs">No. Subred</label>
+        <input type="text" id="subs" name="subs" class="inpu">
+        <br>
+        <label for="hosts">No. Hosts</label>
+        <input type="text" id="hosts" name="hosts" onblur="inner('subs',subredes(valor('ip'),valor('hosts')).length)" class="inpu">
+        <br>
+        <input type="radio" id="claseA" name="clase" value="A">
+        <label for="A">Clase A</label>
+        <input type="radio" id="claseB" name="clase" value="B">
+        <label for="B">Clase B</label>
+        <input type="radio" id="claseC" name="clase" value="C">
+        <label for="C">Clase C</label>
+        <br>
+        <label for="mascara">Mascara de Subred</label>
+        <input type="text" id="mascara" name="mascara" onblur="set('clase'+clas(valor('mascara')))" class="inpu">
+        <br><br>
+        <input type="button" value="Enviar" onclick="siescrib();" class="boton">
+        <br>
+        <table id="tabla" border="1" class="tabla"></table>
+    </body>
+</html>
+
+<script>
+    function valorRadio(id){
+        return document.querySelector('input[name='+id+']:checked').value;
+    }
+
+    function valor(id){
+        var valor=document.getElementById(id).value;
+        return valor;
+    }
+
+    function valorLabel(id){
+        var valor=document.getElementById(id).innerText;
+        return valor;
+    }
+
+    function set(id){
+        if(document.getElementById(id)!=null){
+            document.getElementById(id).checked=true;
+        }
+    }
+
+    function inner(id,text){
+        document.getElementById(id).innerHTML=text;
+        document.getElementById(id).setAttribute('value',text);
+    }
+
+    function innerAdd(id,text){
+        inner(id,valor(id)+text);
+    }
+
+    function innerAddLabel(id,text){
+        inner(id,valorLabel(id)+text);
+    }
+        
+    function conbin(num){
+        var respuesta="-1";
+        ram=num;
+        if(!isNaN(num)){
+            ram=ram.valueOf();
+            if(0<=num&&num<256){
+                respuesta=""
+                for(var i=7;i>=0;i--){
+                    if(2**i<=ram){
+                        respuesta+="1";
+                        ram=ram-2**i;
+                    }else{
+                        respuesta+="0";
+                    }
+                }
+            }
+        }
+        return respuesta;
+    }
+        
+    function ipsFrom(ip){
+        var ips=[];
+        var ram="";
+        ips=ip.split(".");
+        if(ips.length==4){
+            for(var i=0;i<ips.length;i++){
+                if(conbin(ips[i])=="-1"){
+                    ram="-1";
+                }
+            }
+        }else{
+            ram="-1";
+        }
+        if(ram=="-1"){
+            ips[0]="-1";
+        }
+        return ips;
+    }
+
+    function ipFrom(ips){
+        var ip="";
+        for(var i=0;i<ips.length-1;i++){
+            ip+=ips[i];
+            ip+=".";
+        } 
+        ip+=ips[ips.length-1];
+        return ip;
+    }
+        
+    function crearTabla(tabla){
+        while(tabla.rows.length>0){
+            tabla.deleteRow(-1);
+        }
+        var row=[];
+        var num=[];
+        var desde=[];
+        var hasta=[];
+        row[0]=tabla.insertRow(0);
+        num[0]=row[0].insertCell(0);
+        num[0].innerHTML="Numero de Subred";
+        desde[0]=row[0].insertCell(1);
+        desde[0].innerHTML="Desde";
+        hasta[0]=row[0].insertCell(2);
+        hasta[0].innerHTML="Hasta";
+    }
+        
+    function ipBin(){
+        var ip=[];
+        ip=valor("ip").split(".");
+        inner("ipBin","");
+        for(var j=0;j<ip.length&&ip.lenght>0;j++){
+            console.log(j);
+            if(conbin(ip[j])=="-1"){
+                inner("ipBin","-1");
+            }
+        }
+        if(valor("ipBin")!="-1"
+                &&valor("ip").split(".").length==4){
+            for(var j=0;j<ip.length;j++){
+                console.log(j+" "+ip.length);
+                innerAddLabel("ipBin",conbin(ip[j]));
+            }
+        }else{
+            inner("ipBin","");
+        }
+    }
+        
+    function clas(mascara){
+        var masc=[];
+        masc=mascara.split(".");
+        var respuesta="";
+        var pos=0;
+        for(var i=0;i<masc.length&&masc.length>0;i++){
+            if(conbin(masc[i])=="-1"){
+                respuesta="-1";
+            }
+        }
+        if(respuesta!="=1"
+                    &&masc.length==4){
+            for(var i=0;i<masc.length;i++){
+                if(masc[i]=='255'){
+                    pos=i+1;
+                }
+            }
+            switch(pos){
+                case 1:
+                    respuesta="A";
+                    break;
+                case 2:
+                    respuesta="B";
+                    break;
+                case 3:
+                    respuesta="C";
+                    break;
+                default:
+                    break;
+            }
+        }else{
+            respuesta="-1";
+        }
+        return respuesta;
+    }
+
+    function claseNum(mascara){
+        var respuesta=0;
+        var clase=clas(mascara);
+        switch(clase){
+            case "A":
+                respuesta=1;
+                break;
+            case "B":
+                respuesta=2;
+                break;
+            case "3":
+                respuesta=3;
+                break;
+            default:
+                break;
+        }
+        return respuesta;
+    }
+
+    function aproxim(num){
+        var i=0;
+        while(num>2**i){
+            i++;
+        }   
+        return i;
+    }
+
+    function aprox256(num){
+        var i=0;
+        while(num>2**(i*8)){
+            i++;
+        }
+        
+        return i;
+    }
+        
+    function subredes(ip,hosts){
+        var hosts=(parseInt(hosts)+2);
+        var subredes=[];
+        var cant=0;
+        var ips=[]
+        var ips=ip.split(".");
+        if(!isNaN(hosts)&&ipsFrom(ip)[0]!="-1"){
+            cant=(2**(8*aprox256(hosts))/2**aproxim(hosts));
+            console.log(ipsFrom(ip)+" "+cant+' '+aproxim(hosts));
+            for(var i=0;i<cant;i++){
+                subredes[i]=ipFrom(ips);
+                ips[ips.length-aprox256(hosts)]=parseInt(ips[ips.length-aprox256(hosts)])+256/cant;
+            }
+        }else{
+            subredes=[];
+        } 
+        console.log(subredes.length);
+        return subredes;
+    }
+
+    function subredes(ip,hosts,clase){
+        var hosts=(parseInt(hosts)+2);
+        var subredes=[];
+        var cant=0;
+        var ips=[]
+        var ips=ip.split(".");
+        if(!isNaN(hosts)&&ipsFrom(ip)[0]!="-1"){
+            cant=(2**(8*aprox256(hosts))/2**aproxim(hosts));
+            console.log(ipsFrom(ip)+" "+cant+' '+aproxim(hosts));
+            for(var i=0;i<cant;i++){
+                subredes[i]=ipFrom(ips);
+                ips[clase+1]=parseInt(ips[clase+1])+256/cant;
+            }
+        }else{
+            subredes=[];
+        }
+        console.log(subredes.length);
+        return subredes;
+    }   
+
+    function hosts(ip,subs){
+        subs=aproxim(parseInt(subs));
+    }
+        
+    function siescrib(){
+        var tabla=document.getElementById("tabla");
+        crearTabla(tabla);
+        ipBin();
+        var ip=valor("ip");
+        var subs=valor("subs");
+        var hosts=valor("hosts");
+        var mascara=valor("mascara");
+        var clase=claseNum(valorRadio("clase"));
+        if(ipsFrom(valor("ip"))[0]!=="-1"){
+            var ips=subredes(ip,hosts,clase);
+            for(var i=0;i<ips.length;i++){
+                var row=tabla.insertRow();
+                var cell=row.insertCell();
+                cell.innerHTML=(i+1);
+                cell=row.insertCell();
+                cell.innerHTML=(ips[i]);
+                cell=row.insertCell();
+                cell.innerHTML=(i+1);
+            }
+        }
+    }
+</script>
